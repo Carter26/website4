@@ -388,6 +388,7 @@ function ListingModal({ listing, businessId, onClose, onSave }: { listing: Listi
   const [contact, setContact] = useState(listing?.contact_info || '');
   const [requirements, setRequirements] = useState(listing?.application_requirements || '');
   const [type, setType] = useState(listing?.listing_type || 'Custom Sponsorship');
+  const [scope, setScope] = useState<'all' | 'sports_only'>(listing?.sponsor_scope || 'all');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -405,6 +406,7 @@ function ListingModal({ listing, businessId, onClose, onSave }: { listing: Listi
       contact_info: contact,
       application_requirements: requirements,
       listing_type: type,
+      sponsor_scope: scope,
       is_active: true,
     };
     const { error } = listing
@@ -435,6 +437,13 @@ function ListingModal({ listing, businessId, onClose, onSave }: { listing: Listi
               <label className="block text-xs font-medium text-slate-300 mb-1.5">Listing Type</label>
               <select value={type} onChange={e => setType(e.target.value)} className={inputClass}>
                 {LISTING_TYPES.map(t => <option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Open To</label>
+              <select value={scope} onChange={e => setScope(e.target.value as 'all' | 'sports_only')} className={inputClass}>
+                <option value="all">All Sponsor Seekers</option>
+                <option value="sports_only">Sports Teams Only</option>
               </select>
             </div>
             <div>

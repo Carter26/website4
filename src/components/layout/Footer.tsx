@@ -19,7 +19,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              Connecting local businesses with youth sports teams, high school athletic programs, and community organizations.
+              Connecting local businesses with teams, organizations, and community causes through meaningful sponsorship partnerships.
             </p>
             <div className="flex gap-3">
               {[Instagram, Facebook, Twitter].map((Icon, i) => (

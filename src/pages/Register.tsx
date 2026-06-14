@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, ArrowRight, AlertCircle, Building2, Trophy, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, AlertCircle, Building2, Trophy, Users, CheckCircle, Megaphone } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import type { OrganizationType, OrganizationCategory } from '../types';
 
 type Step = 'type' | 'credentials' | 'profile';
 
@@ -9,12 +10,19 @@ const SPORTS = ['Baseball','Basketball','Cheer','Cross Country','Football','Golf
 const AGE_GROUPS = ['8U','10U','12U','14U','16U','18U','High School','College','Adult'];
 const BUDGET_RANGES = ['Under $500','$500–$1,000','$1,000–$2,500','$2,500–$5,000','$5,000–$10,000','$10,000+'];
 const CATEGORIES = ['Restaurant','Auto Shop','Gym','Insurance','Real Estate','Medical','Retail','Other'];
+const ORG_CATEGORIES: OrganizationCategory[] = ['Arts & Culture','Charity & Nonprofit','Community Group','Education','Environmental','Faith-Based','Festival & Event','Health & Wellness','Music & Entertainment','Youth Program','Other'];
+const ORG_TYPES: { value: OrganizationType; label: string; desc: string }[] = [
+  { value: 'sports_team', label: 'Sports Team', desc: 'Youth, high school, or adult athletic team' },
+  { value: 'organization', label: 'Organization', desc: 'Nonprofit, club, or community group' },
+  { value: 'individual', label: 'Individual', desc: 'Solo creator, artist, or cause' },
+  { value: 'event', label: 'Event', desc: 'Festival, tournament, or community event' },
+];
 
 export default function Register() {
   const [params] = useSearchParams();
   const [step, setStep] = useState<Step>('type');
   const [accountType, setAccountType] = useState<'business' | 'team'>(
-    params.get('type') === 'business' ? 'business' : params.get('type') === 'team' ? 'team' : 'business'
+    params.get('type') === 'business' ? 'business' : 'team'
   );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,17 +41,22 @@ export default function Register() {
   const [phone, setPhone] = useState('');
   const [budgetRange, setBudgetRange] = useState('$500–$1,000');
 
-  // Team fields
+  // Team / seeker fields
   const [teamName, setTeamName] = useState('');
+  const [orgType, setOrgType] = useState<OrganizationType>('sports_team');
   const [sport, setSport] = useState('Basketball');
   const [ageGroup, setAgeGroup] = useState('14U');
   const [teamBio, setTeamBio] = useState('');
   const [teamCity, setTeamCity] = useState('');
   const [teamState, setTeamState] = useState('');
   const [athleteCount, setAthleteCount] = useState('');
+  const [memberCount, setMemberCount] = useState('');
+  const [orgCategory, setOrgCategory] = useState<OrganizationCategory>('Community Group');
 
   const { signUp } = useAuth();
   const navigate = useNavigate();
+
+  const isSportsTeam = orgType === 'sports_team';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,12 +88,15 @@ export default function Register() {
     } else {
       profileData = {
         team_name: teamName,
-        sport,
-        age_group: ageGroup,
+        sport: isSportsTeam ? sport : null,
+        age_group: isSportsTeam ? ageGroup : null,
         bio: teamBio,
         city: teamCity,
         state: teamState,
-        athlete_count: athleteCount ? parseInt(athleteCount) : null,
+        athlete_count: isSportsTeam && athleteCount ? parseInt(athleteCount) : null,
+        member_count: !isSportsTeam && memberCount ? parseInt(memberCount) : null,
+        organization_type: orgType,
+        organization_category: isSportsTeam ? null : orgCategory,
       };
     }
 
@@ -150,7 +166,7 @@ export default function Register() {
                   {accountType === 'business' && <CheckCircle size={20} className="absolute top-4 right-4 text-gold-400" />}
                   <Building2 size={32} className={accountType === 'business' ? 'text-gold-400' : 'text-slate-400'} />
                   <h3 className="text-white font-bold mt-3 mb-1">Business Account</h3>
-                  <p className="text-slate-400 text-sm">Create sponsorship opportunities and connect with local teams</p>
+                  <p className="text-slate-400 text-sm">Create sponsorship opportunities and connect with local teams and organizations</p>
                   <ul className="mt-4 space-y-1">
                     {['Post sponsorship listings', 'Manage applications', 'View analytics'].map(f => (
                       <li key={f} className="flex items-center gap-2 text-slate-400 text-xs">
@@ -160,26 +176,61 @@ export default function Register() {
                   </ul>
                 </button>
 
-                <button
-                  onClick={() => setAccountType('team')}
-                  className={`relative p-6 rounded-2xl border-2 text-left transition-all ${
-                    accountType === 'team'
-                      ? 'border-gold-400 bg-gold-400/10'
-                      : 'border-white/10 hover:border-white/20 bg-navy-950/50'
-                  }`}
-                >
-                  {accountType === 'team' && <CheckCircle size={20} className="absolute top-4 right-4 text-gold-400" />}
-                  <Trophy size={32} className={accountType === 'team' ? 'text-gold-400' : 'text-slate-400'} />
-                  <h3 className="text-white font-bold mt-3 mb-1">Team Account</h3>
-                  <p className="text-slate-400 text-sm">Browse opportunities and apply for sponsorships</p>
-                  <ul className="mt-4 space-y-1">
-                    {['Browse listings', 'Apply for sponsorships', 'Save opportunities'].map(f => (
-                      <li key={f} className="flex items-center gap-2 text-slate-400 text-xs">
-                        <div className="w-1.5 h-1.5 rounded-full bg-gold-400" />{f}
-                      </li>
-                    ))}
-                  </ul>
-                </button>
+                <div>
+                  <button
+                    onClick={() => { setAccountType('team'); setOrgType('sports_team'); }}
+                    className={`relative w-full p-6 rounded-2xl border-2 text-left transition-all ${
+                      accountType === 'team' && isSportsTeam
+                        ? 'border-gold-400 bg-gold-400/10'
+                        : accountType === 'team' && !isSportsTeam
+                        ? 'border-gold-400/40 bg-gold-400/5'
+                        : 'border-white/10 hover:border-white/20 bg-navy-950/50'
+                    }`}
+                  >
+                    {accountType === 'team' && <CheckCircle size={20} className="absolute top-4 right-4 text-gold-400" />}
+                    <Trophy size={32} className={accountType === 'team' ? 'text-gold-400' : 'text-slate-400'} />
+                    <h3 className="text-white font-bold mt-3 mb-1">Sponsor Seeker</h3>
+                    <p className="text-slate-400 text-sm">Browse opportunities and apply for sponsorships for your team or organization</p>
+                    <ul className="mt-4 space-y-1">
+                      {['Browse listings', 'Apply for sponsorships', 'Save opportunities'].map(f => (
+                        <li key={f} className="flex items-center gap-2 text-slate-400 text-xs">
+                          <div className="w-1.5 h-1.5 rounded-full bg-gold-400" />{f}
+                        </li>
+                      ))}
+                    </ul>
+                  </button>
+
+                  {/* Not a team? link */}
+                  {accountType === 'team' && (
+                    <div className="mt-3">
+                      {!isSportsTeam && (
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          {ORG_TYPES.map(ot => (
+                            <button
+                              key={ot.value}
+                              onClick={() => setOrgType(ot.value)}
+                              className={`p-3 rounded-xl border text-left transition-all ${
+                                orgType === ot.value
+                                  ? 'border-gold-400 bg-gold-400/10'
+                                  : 'border-white/10 hover:border-white/20 bg-navy-950/50'
+                              }`}
+                            >
+                              <p className="text-white text-xs font-semibold">{ot.label}</p>
+                              <p className="text-slate-500 text-xs mt-0.5">{ot.desc}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setOrgType(isSportsTeam ? 'organization' : 'sports_team')}
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all bg-gold-400/5 border border-gold-400/20 text-gold-400 hover:bg-gold-400/10"
+                      >
+                        <Megaphone size={16} />
+                        {isSportsTeam ? "Not a sports team? Click here" : "Switch to Sports Team"}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               <button
                 onClick={() => setStep('credentials')}
@@ -234,7 +285,9 @@ export default function Register() {
           {/* Step 3: Profile */}
           {step === 'profile' && (
             <form onSubmit={handleSubmit}>
-              <h2 className="text-xl font-bold text-white mb-6">{accountType === 'business' ? 'Business' : 'Team'} Profile</h2>
+              <h2 className="text-xl font-bold text-white mb-6">
+                {accountType === 'business' ? 'Business' : isSportsTeam ? 'Team' : orgType === 'event' ? 'Event' : orgType === 'individual' ? 'Personal' : 'Organization'} Profile
+              </h2>
 
               {accountType === 'business' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -272,10 +325,10 @@ export default function Register() {
                   </div>
                   <div className="sm:col-span-2">
                     <label className={labelClass}>Business Description</label>
-                    <textarea value={description} onChange={e => setDescription(e.target.value)} className={`${inputClass} h-24 resize-none`} placeholder="Tell teams about your business..." />
+                    <textarea value={description} onChange={e => setDescription(e.target.value)} className={`${inputClass} h-24 resize-none`} placeholder="Tell sponsors about your business..." />
                   </div>
                 </div>
-              ) : (
+              ) : isSportsTeam ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   <div className="sm:col-span-2">
                     <label className={labelClass}>Team Name *</label>
@@ -308,6 +361,41 @@ export default function Register() {
                   <div className="sm:col-span-2">
                     <label className={labelClass}>Team Bio</label>
                     <textarea value={teamBio} onChange={e => setTeamBio(e.target.value)} className={`${inputClass} h-24 resize-none`} placeholder="Tell businesses about your team..." />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <div className="sm:col-span-2">
+                    <label className={labelClass}>
+                      {orgType === 'event' ? 'Event Name' : orgType === 'individual' ? 'Your Name' : 'Organization Name'} *
+                    </label>
+                    <input value={teamName} onChange={e => setTeamName(e.target.value)} required className={inputClass} placeholder={
+                      orgType === 'event' ? 'Annual Community Festival' : orgType === 'individual' ? 'Your name' : 'Organization name'
+                    } />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Category *</label>
+                    <select value={orgCategory} onChange={e => setOrgCategory(e.target.value as OrganizationCategory)} className={inputClass}>
+                      {ORG_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Number of Members</label>
+                    <input type="number" value={memberCount} onChange={e => setMemberCount(e.target.value)} className={inputClass} placeholder="50" min="1" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>City *</label>
+                    <input value={teamCity} onChange={e => setTeamCity(e.target.value)} required className={inputClass} placeholder="City" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>State *</label>
+                    <input value={teamState} onChange={e => setTeamState(e.target.value)} required className={inputClass} placeholder="State" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={labelClass}>Description</label>
+                    <textarea value={teamBio} onChange={e => setTeamBio(e.target.value)} className={`${inputClass} h-24 resize-none`} placeholder={
+                      orgType === 'event' ? 'Tell businesses about your event...' : orgType === 'individual' ? 'Tell businesses about what you do...' : 'Tell businesses about your organization...'
+                    } />
                   </div>
                 </div>
               )}

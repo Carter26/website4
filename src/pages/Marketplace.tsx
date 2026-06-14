@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const CATEGORIES = ['All', 'Restaurant', 'Auto Shop', 'Gym', 'Insurance', 'Real Estate', 'Medical', 'Retail', 'Other'];
 const LISTING_TYPES = ['All', 'Jersey Sponsorship', 'Banner Sponsorship', 'Tournament Sponsorship', 'Social Media Promotion', 'Community Event Sponsorship', 'Custom Sponsorship'];
+const SCOPE_OPTIONS = ['All', 'All Seekers', 'Sports Teams Only'];
 const BUDGET_OPTIONS = [
   { label: 'Any Budget', min: 0, max: Infinity },
   { label: 'Under $500', min: 0, max: 500 },
@@ -27,6 +28,7 @@ export default function Marketplace() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [listingType, setListingType] = useState('All');
+  const [scopeFilter, setScopeFilter] = useState('All');
   const [budget, setBudget] = useState(0);
   const [locationFilter, setLocationFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -76,6 +78,12 @@ export default function Marketplace() {
       result = result.filter(l => l.listing_type === listingType);
     }
 
+    if (scopeFilter === 'Sports Teams Only') {
+      result = result.filter(l => l.sponsor_scope === 'sports_only');
+    } else if (scopeFilter === 'All Seekers') {
+      result = result.filter(l => l.sponsor_scope === 'all');
+    }
+
     if (budget > 0) {
       const opt = BUDGET_OPTIONS[budget];
       result = result.filter(l => {
@@ -101,11 +109,12 @@ export default function Marketplace() {
     setSearch('');
     setCategory('All');
     setListingType('All');
+    setScopeFilter('All');
     setBudget(0);
     setLocationFilter('');
   };
 
-  const hasActiveFilters = search || category !== 'All' || listingType !== 'All' || budget > 0 || locationFilter;
+  const hasActiveFilters = search || category !== 'All' || listingType !== 'All' || scopeFilter !== 'All' || budget > 0 || locationFilter;
 
   return (
     <div className="min-h-screen bg-navy-950 pt-20">
@@ -115,7 +124,7 @@ export default function Marketplace() {
           <div className="max-w-2xl">
             <p className="text-gold-400 text-sm font-semibold uppercase tracking-widest mb-2">Sponsorship Marketplace</p>
             <h1 className="text-4xl lg:text-5xl font-black text-white mb-4">Browse Opportunities</h1>
-            <p className="text-slate-400 text-lg">Discover sponsorship opportunities from local businesses supporting youth and high school athletics.</p>
+            <p className="text-slate-400 text-lg">Discover sponsorship opportunities from local businesses supporting teams, organizations, and community causes.</p>
           </div>
 
           {/* Search */}
@@ -146,7 +155,7 @@ export default function Marketplace() {
           {/* Filters Panel */}
           {showFilters && (
             <div className="mt-4 bg-navy-900/80 border border-white/10 rounded-2xl p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Category</label>
                   <select value={category} onChange={e => setCategory(e.target.value)} className="w-full px-3 py-2.5 bg-navy-950 border border-white/10 rounded-xl text-white text-sm outline-none">
@@ -157,6 +166,12 @@ export default function Marketplace() {
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Listing Type</label>
                   <select value={listingType} onChange={e => setListingType(e.target.value)} className="w-full px-3 py-2.5 bg-navy-950 border border-white/10 rounded-xl text-white text-sm outline-none">
                     {LISTING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Open To</label>
+                  <select value={scopeFilter} onChange={e => setScopeFilter(e.target.value)} className="w-full px-3 py-2.5 bg-navy-950 border border-white/10 rounded-xl text-white text-sm outline-none">
+                    {SCOPE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
@@ -274,6 +289,13 @@ function ListingCard({ listing, user }: { listing: ListingWithBusiness; user: un
       <div className="flex flex-wrap gap-2 mb-5">
         <span className="flex items-center gap-1 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400 text-xs font-medium">
           <Tag size={11} />{listing.listing_type}
+        </span>
+        <span className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${
+          listing.sponsor_scope === 'sports_only'
+            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+            : 'bg-gold-400/10 border border-gold-400/20 text-gold-400'
+        }`}>
+          {listing.sponsor_scope === 'sports_only' ? 'Sports Teams' : 'All Seekers'}
         </span>
         <span className="flex items-center gap-1 px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-slate-400 text-xs">
           {business?.category}

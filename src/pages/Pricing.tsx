@@ -5,11 +5,11 @@ import { CheckCircle, Star, ArrowRight, Building2, Trophy } from 'lucide-react';
 const BUSINESS_FEATURES = [
   'Full Marketplace Visibility',
   'Unlimited Sponsorship Listings',
-  'Team Application Management',
+  'Application Management',
   'Accept / Decline / Save Applications',
   'Analytics Dashboard',
   'Business Profile Page',
-  'Direct Team Contact',
+  'Direct Contact',
   'Email Notifications',
 ];
 
@@ -40,13 +40,13 @@ export default function Pricing() {
             <div className="w-12 h-12 rounded-2xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center mb-6">
               <Trophy size={24} className="text-emerald-400" />
             </div>
-            <h3 className="text-white font-black text-2xl mb-1">Team</h3>
+            <h3 className="text-white font-black text-2xl mb-1">Sponsor Seeker</h3>
             <div className="flex items-end gap-1 mb-2">
               <span className="text-4xl font-black text-white">Free</span>
             </div>
-            <p className="text-slate-400 text-sm mb-8">Always free for youth and high school athletic programs</p>
+            <p className="text-slate-400 text-sm mb-8">Always free for teams, organizations, and individuals seeking sponsors</p>
             <div className="space-y-3 mb-8">
-              {['Browse sponsorship marketplace', 'Apply to unlimited opportunities', 'Save listings for later', 'Team profile page', 'Application status tracking', 'Email notifications'].map(f => (
+              {['Browse sponsorship marketplace', 'Apply to unlimited opportunities', 'Save listings for later', 'Profile page', 'Application status tracking', 'Email notifications'].map(f => (
                 <div key={f} className="flex items-center gap-3">
                   <CheckCircle size={16} className="text-emerald-400 flex-shrink-0" />
                   <span className="text-slate-300 text-sm">{f}</span>
@@ -54,7 +54,7 @@ export default function Pricing() {
               ))}
             </div>
             <Link to="/register?type=team" className="block w-full py-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 font-bold text-center rounded-2xl transition-all">
-              Register Your Team
+              Register as Sponsor Seeker
             </Link>
           </div>
 

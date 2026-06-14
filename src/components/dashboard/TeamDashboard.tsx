@@ -62,7 +62,16 @@ export default function TeamDashboard() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-black text-white">{teamProfile?.team_name}</h1>
-            <p className="text-slate-400 mt-1">{teamProfile?.sport} · {teamProfile?.age_group} · {teamProfile?.city}, {teamProfile?.state}</p>
+            <p className="text-slate-400 mt-1">
+              {teamProfile?.organization_type === 'sports_team'
+                ? `${teamProfile?.sport} · ${teamProfile?.age_group || ''} · ${teamProfile?.city}, ${teamProfile?.state}`
+                : teamProfile?.organization_type === 'event'
+                ? `${teamProfile?.organization_category || 'Event'} · ${teamProfile?.city}, ${teamProfile?.state}`
+                : teamProfile?.organization_type === 'individual'
+                ? `Individual · ${teamProfile?.organization_category || ''} · ${teamProfile?.city}, ${teamProfile?.state}`
+                : `${teamProfile?.organization_category || 'Organization'} · ${teamProfile?.city}, ${teamProfile?.state}`
+              }
+            </p>
           </div>
           <div className="flex gap-3">
             <Link to="/profile" className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-semibold rounded-xl transition-all">
@@ -117,9 +126,18 @@ export default function TeamDashboard() {
                 <div>
                   <h3 className="text-white font-bold text-xl mb-1">{teamProfile?.team_name}</h3>
                   <div className="flex flex-wrap gap-2">
-                    <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400 text-xs">{teamProfile?.sport}</span>
+                    {teamProfile?.sport && <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400 text-xs">{teamProfile.sport}</span>}
+                    {teamProfile?.organization_type && teamProfile.organization_type !== 'sports_team' && (
+                      <span className="px-2.5 py-1 bg-gold-400/10 border border-gold-400/20 rounded-lg text-gold-400 text-xs">
+                        {teamProfile.organization_type === 'organization' ? 'Organization' : teamProfile.organization_type === 'individual' ? 'Individual' : 'Event'}
+                      </span>
+                    )}
+                    {teamProfile?.organization_category && teamProfile?.organization_type !== 'sports_team' && (
+                      <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-slate-400 text-xs">{teamProfile.organization_category}</span>
+                    )}
                     {teamProfile?.age_group && <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-slate-400 text-xs">{teamProfile.age_group}</span>}
                     {teamProfile?.athlete_count && <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-slate-400 text-xs">{teamProfile.athlete_count} Athletes</span>}
+                    {teamProfile?.member_count && <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-slate-400 text-xs">{teamProfile.member_count} Members</span>}
                   </div>
                 </div>
                 <Link to="/profile" className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-semibold rounded-xl transition-all">Edit</Link>

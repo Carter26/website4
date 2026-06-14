@@ -10,6 +10,10 @@ export type ListingType =
   | 'Community Event Sponsorship'
   | 'Custom Sponsorship';
 
+export type SponsorScope = 'all' | 'sports_only';
+
+export type OrganizationType = 'sports_team' | 'organization' | 'individual' | 'event';
+
 export type BusinessCategory =
   | 'Restaurant'
   | 'Auto Shop'
@@ -18,6 +22,19 @@ export type BusinessCategory =
   | 'Real Estate'
   | 'Medical'
   | 'Retail'
+  | 'Other';
+
+export type OrganizationCategory =
+  | 'Arts & Culture'
+  | 'Charity & Nonprofit'
+  | 'Community Group'
+  | 'Education'
+  | 'Environmental'
+  | 'Faith-Based'
+  | 'Festival & Event'
+  | 'Health & Wellness'
+  | 'Music & Entertainment'
+  | 'Youth Program'
   | 'Other';
 
 export interface Profile {
@@ -52,7 +69,7 @@ export interface BusinessProfile {
 export interface TeamProfile {
   id: string;
   team_name: string;
-  sport: string;
+  sport: string | null;
   age_group: string | null;
   city: string | null;
   state: string | null;
@@ -60,6 +77,9 @@ export interface TeamProfile {
   logo_url: string | null;
   photo_url: string | null;
   athlete_count: number | null;
+  organization_type: OrganizationType;
+  organization_category: OrganizationCategory | null;
+  member_count: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -75,6 +95,7 @@ export interface Listing {
   contact_info: string | null;
   application_requirements: string | null;
   listing_type: string;
+  sponsor_scope: SponsorScope;
   is_active: boolean;
   views: number;
   created_at: string;

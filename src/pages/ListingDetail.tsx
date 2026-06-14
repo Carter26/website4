@@ -107,6 +107,13 @@ export default function ListingDetail() {
             <div className="bg-navy-900/80 border border-white/10 rounded-3xl p-8">
               <div className="flex items-center gap-3 mb-3">
                 <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400 text-xs font-semibold">{listing.listing_type}</span>
+                <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${
+                  listing.sponsor_scope === 'sports_only'
+                    ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                    : 'bg-gold-400/10 border border-gold-400/20 text-gold-400'
+                }`}>
+                  {listing.sponsor_scope === 'sports_only' ? 'Sports Teams Only' : 'All Sponsor Seekers'}
+                </span>
                 {business?.is_founding_member && (
                   <span className="px-3 py-1 bg-gold-400/10 border border-gold-400/30 rounded-lg text-gold-400 text-xs font-bold">Premium Business</span>
                 )}
@@ -217,8 +224,8 @@ export default function ListingDetail() {
                   </div>
                 )}
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Team Description *</label>
-                  <textarea required value={appDescription} onChange={e => setAppDescription(e.target.value)} className={`${inputClass} h-20 resize-none`} placeholder="Tell about your team..." />
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Description *</label>
+                  <textarea required value={appDescription} onChange={e => setAppDescription(e.target.value)} className={`${inputClass} h-20 resize-none`} placeholder="Tell about your team or organization..." />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Why You Need This Sponsorship *</label>
