@@ -27,31 +27,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (userId: string) => {
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-    if (profileData) {
-      setProfile(profileData);
-      if (profileData.account_type === 'business') {
-        const { data: bp } = await supabase
-          .from('business_profiles')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
-        setBusinessProfile(bp);
-        setTeamProfile(null);
-      } else if (profileData.account_type === 'team') {
-        const { data: tp } = await supabase
-          .from('team_profiles')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
-        setTeamProfile(tp);
-        setBusinessProfile(null);
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
       }
+
+      if (profileData) {
+        setProfile(profileData);
+        if (profileData.account_type === 'business') {
+          const { data: bp } = await supabase
+            .from('business_profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle();
+          setBusinessProfile(bp);
+          setTeamProfile(null);
+        } else if (profileData.account_type === 'team') {
+          const { data: tp } = await supabase
+            .from('team_profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle();
+          setTeamProfile(tp);
+          setBusinessProfile(null);
+        }
+      }
+    } catch (err) {
+      console.error('Exception loading profile:', err);
     }
   };
 
@@ -60,15 +69,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        loadProfile(session.user.id).finally(() => setLoading(false));
-      } else {
+    supabase.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          loadProfile(session.user.id).finally(() => setLoading(false));
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        console.error('Exception getting session:', err);
         setLoading(false);
-      }
-    });
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
@@ -91,39 +108,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accountType: string,
     profileData: Record<string, unknown>
   ) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) return { error };
-    if (!data.user) return { error: new Error('No user returned') };
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) return { error };
+      if (!data.user) return { error: new Error('No user returned') };
 
-    const userId = data.user.id;
+      const userId = data.user.id;
 
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: userId,
-      email,
-      account_type: accountType,
-    });
-    if (profileError) return { error: profileError };
-
-    if (accountType === 'business') {
-      const { error: bpError } = await supabase.from('business_profiles').insert({
+      const { error: profileError } = await supabase.from('profiles').insert({
         id: userId,
-        ...profileData,
+        email,
+        account_type: accountType,
       });
-      if (bpError) return { error: bpError };
-    } else if (accountType === 'team') {
-      const { error: tpError } = await supabase.from('team_profiles').insert({
-        id: userId,
-        ...profileData,
-      });
-      if (tpError) return { error: tpError };
+      if (profileError) return { error: profileError };
+
+      if (accountType === 'business') {
+        const { error: bpError } = await supabase.from('business_profiles').insert({
+          id: userId,
+          ...profileData,
+        });
+        if (bpError) return { error: bpError };
+      } else if (accountType === 'team') {
+        const { error: tpError } = await supabase.from('team_profiles').insert({
+          id: userId,
+          ...profileData,
+        });
+        if (tpError) return { error: tpError };
+      }
+
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err : new Error('Unknown error during signup') };
     }
-
-    return { error: null };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error: error as Error | null };
+    } catch (err) {
+      return { error: err instanceof Error ? err : new Error('Unknown error during signin') };
+    }
   };
 
   const signOut = async () => {
